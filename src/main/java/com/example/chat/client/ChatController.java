@@ -15,10 +15,12 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -45,10 +47,14 @@ public class ChatController implements Initializable {
     @FXML
     private ListView<String> onlineUsersList;
     @FXML
-    private TextField targetUserField;
+    private Label chatModeLabel;
+    @FXML
+    private Button switchToGroupChatBtn;
 
     private WebSocketClient webSocketClient;
     private String currentUsername;
+    private String currentChatTarget = null;
+    private boolean isPrivateChatMode = false;
     private final Gson gson = new Gson();
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
@@ -62,14 +68,45 @@ public class ChatController implements Initializable {
         sendBtn.setOnAction(event -> sendMessage());
         connectBtn.setOnAction(event -> connect());
         disconnectBtn.setOnAction(event -> disconnect());
+        switchToGroupChatBtn.setOnAction(event -> switchToGroupChat());
 
-        onlineUsersList.getSelectionModel().selectedItemProperty().addListener(
-                (observable, oldValue, newValue) -> {
-                    if (newValue != null && !newValue.equals(currentUsername)) {
-                        targetUserField.setText(newValue);
-                    }
+        onlineUsersList.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) {
+                String selectedUser = onlineUsersList.getSelectionModel().getSelectedItem();
+                if (selectedUser != null && !selectedUser.equals(currentUsername)) {
+                    startPrivateChat(selectedUser);
                 }
-        );
+            }
+        });
+
+        updateChatModeLabel();
+    }
+
+    private void startPrivateChat(String targetUser) {
+        currentChatTarget = targetUser;
+        isPrivateChatMode = true;
+        updateChatModeLabel();
+        appendMessage("系统", "已切换到与 " + targetUser + " 的私聊模式");
+    }
+
+    private void switchToGroupChat() {
+        currentChatTarget = null;
+        isPrivateChatMode = false;
+        onlineUsersList.getSelectionModel().clearSelection();
+        updateChatModeLabel();
+        appendMessage("系统", "已切换到群聊模式");
+    }
+
+    private void updateChatModeLabel() {
+        if (isPrivateChatMode && currentChatTarget != null) {
+            chatModeLabel.setText("当前: 私聊 @" + currentChatTarget);
+            chatModeLabel.setTextFill(Color.RED);
+            switchToGroupChatBtn.setVisible(true);
+        } else {
+            chatModeLabel.setText("当前: 群聊模式");
+            chatModeLabel.setTextFill(Color.GREEN);
+            switchToGroupChatBtn.setVisible(false);
+        }
     }
 
     private void connect() {
@@ -99,6 +136,9 @@ public class ChatController implements Initializable {
             Platform.runLater(() -> {
                 loginBox.setVisible(false);
                 chatBox.setVisible(true);
+                currentChatTarget = null;
+                isPrivateChatMode = false;
+                updateChatModeLabel();
                 appendMessage("系统", "正在登录...");
                 
                 ChatMessage loginMessage = ChatMessage.createLoginMessage(currentUsername);
@@ -155,6 +195,9 @@ public class ChatController implements Initializable {
             case ONLINE_USERS:
                 updateOnlineUsers(message.getContent());
                 break;
+            case OFFLINE_MESSAGE:
+                appendMessage("系统", "【离线消息】" + message.getSender() + ": " + message.getContent(), message.getTimestamp());
+                break;
             default:
                 log.warn("Unknown message type: {}", message.getType());
         }
@@ -199,11 +242,9 @@ public class ChatController implements Initializable {
             return;
         }
 
-        String targetUser = targetUserField.getText().trim();
-        
         ChatMessage chatMessage = ChatMessage.createChatMessage(currentUsername, content);
-        if (!targetUser.isEmpty()) {
-            chatMessage.setTarget(targetUser);
+        if (isPrivateChatMode && currentChatTarget != null) {
+            chatMessage.setTarget(currentChatTarget);
         }
         
         webSocketClient.sendMessage(gson.toJson(chatMessage));
@@ -223,7 +264,9 @@ public class ChatController implements Initializable {
         loginBox.setVisible(true);
         chatArea.clear();
         onlineUsersList.getItems().clear();
-        targetUserField.clear();
+        currentChatTarget = null;
+        isPrivateChatMode = false;
+        updateChatModeLabel();
         currentUsername = null;
     }
 
