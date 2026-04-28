@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.chat.client.ChatController">
+    <children>
+        <VBox fx:id="loginBox" alignment="CENTER" layoutX="200.0" layoutY="150.0" prefHeight="300.0" prefWidth="400.0" spacing="20.0">
+            <padding>
+                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+            </padding>
+            <Label text="WebSocket 聊天室" textFill="#2196f3">
+                <font>
+                    <Font size="24.0" />
+                </font>
+            </Label>
+            <Separator prefWidth="300.0" />
+            <HBox alignment="CENTER_LEFT" spacing="10.0">
+                <Label minWidth="80.0" text="服务器:" />
+                <TextField fx:id="serverAddressField" prefWidth="250.0" promptText="例如: localhost:8080" text="localhost:8080" />
+            </HBox>
+            <HBox alignment="CENTER_LEFT" spacing="10.0">
+                <Label minWidth="80.0" text="用户名:" />
+                <TextField fx:id="usernameField" prefWidth="250.0" promptText="请输入用户名" />
+            </HBox>
+            <Button fx:id="connectBtn" defaultButton="true" mnemonicParsing="false" prefHeight="40.0" prefWidth="150.0" style="-fx-background-color: #2196f3; -fx-text-fill: white;" text="连接服务器" textFill="WHITE">
+                <font>
+                    <Font size="14.0" />
+                </font>
+            </Button>
+        </VBox>
+        <VBox fx:id="chatBox" layoutX="14.0" layoutY="14.0" prefHeight="572.0" prefWidth="772.0" visible="false">
+            <children>
+                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                    <Label text="在线用户" textFill="#666">
+                        <font>
+                            <Font size="14.0" />
+                        </font>
+                    </Label>
+                    <HBox minWidth="-Infinity" VBox.vgrow="ALWAYS" />
+                    <Button fx:id="disconnectBtn" mnemonicParsing="false" prefWidth="100.0" style="-fx-background-color: #f44336; -fx-text-fill: white;" text="断开连接" />
+                </HBox>
+                <Separator prefWidth="750.0" />
+                <HBox prefHeight="450.0" spacing="10.0" VBox.vgrow="ALWAYS">
+                    <children>
+                        <TextArea fx:id="chatArea" editable="false" prefHeight="450.0" prefWidth="550.0" wrapText="true">
+                            <HBox.margin>
+                                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                            </HBox.margin>
+                        </TextArea>
+                        <VBox prefHeight="450.0" prefWidth="200.0" spacing="5.0">
+                            <Label text="在线用户列表" />
+                            <ListView fx:id="onlineUsersList" prefHeight="350.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
+                            <Label text="私聊目标用户:" />
+                            <TextField fx:id="targetUserField" prefWidth="200.0" promptText="为空则群发消息" />
+                        </VBox>
+                    </children>
+                </HBox>
+                <Separator prefWidth="750.0" />
+                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                    <TextField fx:id="messageField" prefHeight="40.0" prefWidth="600.0" promptText="输入消息，按回车发送" HBox.hgrow="ALWAYS">
+                        <font>
+                            <Font size="14.0" />
+                        </font>
+                    </TextField>
+                    <Button fx:id="sendBtn" defaultButton="true" mnemonicParsing="false" prefHeight="40.0" prefWidth="100.0" style="-fx-background-color: #4caf50; -fx-text-fill: white;" text="发送" textFill="WHITE">
+                        <font>
+                            <Font size="14.0" />
+                        </font>
+                    </Button>
+                </HBox>
+            </children>
+        </VBox>
+    </children>
+</AnchorPane>
