@@ -22,6 +22,7 @@ public class ChannelManager {
     }
 
     public static void addChannel(Channel channel) {
+        //生成channel id
         CHANNELS.add(channel);
         log.info("New channel connected: {}", channel.id().asShortText());
     }
