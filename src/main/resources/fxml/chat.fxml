@@ -46,6 +46,12 @@
                             <Font size="14.0" />
                         </font>
                     </Label>
+                    <Label fx:id="chatModeLabel" text="当前: 群聊模式" textFill="#008000">
+                        <font>
+                            <Font size="14.0" />
+                        </font>
+                    </Label>
+                    <Button fx:id="switchToGroupChatBtn" mnemonicParsing="false" prefWidth="100.0" style="-fx-background-color: #ff9800; -fx-text-fill: white;" text="返回群聊" visible="false" />
                     <HBox minWidth="-Infinity" VBox.vgrow="ALWAYS" />
                     <Button fx:id="disconnectBtn" mnemonicParsing="false" prefWidth="100.0" style="-fx-background-color: #f44336; -fx-text-fill: white;" text="断开连接" />
                 </HBox>
@@ -58,10 +64,8 @@
                             </HBox.margin>
                         </TextArea>
                         <VBox prefHeight="450.0" prefWidth="200.0" spacing="5.0">
-                            <Label text="在线用户列表" />
-                            <ListView fx:id="onlineUsersList" prefHeight="350.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
-                            <Label text="私聊目标用户:" />
-                            <TextField fx:id="targetUserField" prefWidth="200.0" promptText="为空则群发消息" />
+                            <Label text="在线用户列表 (双击开始私聊)" />
+                            <ListView fx:id="onlineUsersList" prefHeight="420.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
                         </VBox>
                     </children>
                 </HBox>

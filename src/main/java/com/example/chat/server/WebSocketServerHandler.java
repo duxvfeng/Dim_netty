@@ -110,10 +110,17 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
         
         ChannelManager.registerUser(channel, username);
         
+        int offlineMessageCount = OfflineMessageManager.getOfflineMessageCount(username);
+        
         ChatMessage welcomeMessage = ChatMessage.createSystemMessage(
-                "欢迎 " + username + " 加入聊天室！当前在线 " + ChannelManager.getOnlineCount() + " 人");
+                "欢迎 " + username + " 加入聊天室！当前在线 " + ChannelManager.getOnlineCount() + " 人" +
+                (offlineMessageCount > 0 ? "，您有 " + offlineMessageCount + " 条离线消息" : ""));
         String welcomeJson = GSON.toJson(welcomeMessage);
         channel.writeAndFlush(new TextWebSocketFrame(welcomeJson));
+        
+        if (offlineMessageCount > 0) {
+            sendOfflineMessages(channel, username);
+        }
         
         ChatMessage loginBroadcast = ChatMessage.createSystemMessage(
                 username + " 进入了聊天室");
@@ -122,6 +129,23 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
         
         log.info("User '{}' logged in successfully", username);
         sendOnlineUsersList();
+    }
+
+    private void sendOfflineMessages(Channel channel, String username) {
+        List<ChatMessage> offlineMessages = OfflineMessageManager.getAndRemoveMessages(username);
+        
+        for (ChatMessage msg : offlineMessages) {
+            ChatMessage offlineMsg = ChatMessage.createOfflineMessage(
+                    msg.getSender(),
+                    msg.getTarget(),
+                    msg.getContent()
+            );
+            offlineMsg.setTimestamp(msg.getTimestamp());
+            String offlineJson = GSON.toJson(offlineMsg);
+            channel.writeAndFlush(new TextWebSocketFrame(offlineJson));
+        }
+        
+        log.info("Sent {} offline messages to user '{}'", offlineMessages.size(), username);
     }
 
     private void handleChat(ChannelHandlerContext ctx, ChatMessage message) {
@@ -133,8 +157,19 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
         
         if (message.getTarget() != null && !message.getTarget().isEmpty()) {
             chatMessage.setTarget(message.getTarget());
-            ChannelManager.sendToUser(message.getTarget(), GSON.toJson(chatMessage));
-            channel.writeAndFlush(new TextWebSocketFrame(GSON.toJson(chatMessage)));
+            String targetJson = GSON.toJson(chatMessage);
+            
+            Channel targetChannel = ChannelManager.getChannel(message.getTarget());
+            if (targetChannel != null && targetChannel.isActive()) {
+                ChannelManager.sendToUser(message.getTarget(), targetJson);
+                channel.writeAndFlush(new TextWebSocketFrame(targetJson));
+                log.info("Sent private message from '{}' to '{}'", username, message.getTarget());
+            } else {
+                OfflineMessageManager.storeMessage(chatMessage);
+                sendSystemMessage(channel, message.getTarget() + " 当前不在线，消息已保存为离线消息");
+                channel.writeAndFlush(new TextWebSocketFrame(targetJson));
+                log.info("Stored offline message for user '{}' from '{}'", message.getTarget(), username);
+            }
         } else {
             ChannelManager.broadcast(chatJson);
         }

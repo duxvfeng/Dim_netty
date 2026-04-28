@@ -26,7 +26,8 @@ public class ChatMessage {
         LOGOUT,
         CHAT,
         SYSTEM,
-        ONLINE_USERS
+        ONLINE_USERS,
+        OFFLINE_MESSAGE
     }
 
     public static ChatMessage createLoginMessage(String username) {
@@ -66,6 +67,16 @@ public class ChatMessage {
         return ChatMessage.builder()
                 .type(MessageType.ONLINE_USERS)
                 .content(users)
+                .timestamp(LocalDateTime.now().format(FORMATTER))
+                .build();
+    }
+
+    public static ChatMessage createOfflineMessage(String sender, String target, String content) {
+        return ChatMessage.builder()
+                .type(MessageType.OFFLINE_MESSAGE)
+                .sender(sender)
+                .target(target)
+                .content(content)
                 .timestamp(LocalDateTime.now().format(FORMATTER))
                 .build();
     }
