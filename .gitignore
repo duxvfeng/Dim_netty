@@ -13,3 +13,4 @@ target/classes/com/example/chat/client/ChatClientApp.class
 target/classes/fxml/chat.fxml
 target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst
 target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst
+target/classes/com/example/chat/client/ChatClientLauncher.class
